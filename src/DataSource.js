@@ -95,39 +95,39 @@ class DataSource {
 	}
 
 	async getAllTweets() {
-		if(this.cache.all) {
-			return this.cache.all;
-		}
-		if( this.cachedGetAllPromise ) {
-			return this.cachedGetAllPromise;
-		}
+		// if(this.cache.all) {
+		// 	return this.cache.all;
+		// }
+		// if( this.cachedGetAllPromise ) {
+		// 	return this.cachedGetAllPromise;
+		// }
 
-		// This should only run once.
-		this.cachedGetAllPromise = new Promise((resolve, reject) => {
-			db.all("SELECT * FROM tweets", (err, rows) => {
-				if(err) {
-					reject(err);
-				} else {
-					let ret = rows.filter(row => {
-						if(row.hidden) {
-							return false;
-						}
-						return true;
-					}).map(row => {
-						let json = this.normalizeTweetObject(row);
-						if(json.in_reply_to_status_id_str) {
-							if(!this.cache.replies[json.in_reply_to_status_id_str]) {
-								this.cache.replies[json.in_reply_to_status_id_str] = new Set();
-							}
-							this.cache.replies[json.in_reply_to_status_id_str].add(json);
-						}
-						return json;
-					});
-					this.cache.all = ret;
-					resolve(ret);
-				}
-			});
-		});
+		// // This should only run once.
+		// this.cachedGetAllPromise = new Promise((resolve, reject) => {
+		// 	db.all("SELECT * FROM tweets", (err, rows) => {
+		// 		if(err) {
+		// 			reject(err);
+		// 		} else {
+		// 			let ret = rows.filter(row => {
+		// 				if(row.hidden) {
+		// 					return false;
+		// 				}
+		// 				return true;
+		// 			}).map(row => {
+		// 				let json = this.normalizeTweetObject(row);
+		// 				if(json.in_reply_to_status_id_str) {
+		// 					if(!this.cache.replies[json.in_reply_to_status_id_str]) {
+		// 						this.cache.replies[json.in_reply_to_status_id_str] = new Set();
+		// 					}
+		// 					this.cache.replies[json.in_reply_to_status_id_str].add(json);
+		// 				}
+		// 				return json;
+		// 			});
+		// 			this.cache.all = ret;
+		// 			resolve(ret);
+		// 		}
+		// 	});
+		// });
 
 		return this.cachedGetAllPromise;
 	}

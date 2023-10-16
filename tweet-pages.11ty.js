@@ -4,7 +4,7 @@ const dataSource = require("./src/DataSource");
 class TweetToFile extends Twitter {
 	async data() {
 		return {
-			tweets: await dataSource.getAllTweets(),
+			tweets: {},
 			pagination: {
 				data: "tweets",
 				size: 1,

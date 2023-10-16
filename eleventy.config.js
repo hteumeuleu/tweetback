@@ -29,8 +29,8 @@ module.exports = function(eleventyConfig) {
 	eleventyConfig.addPlugin(EleventyHtmlBasePlugin);
 
 	// pagefind search plugin
-	eleventyConfig.on('eleventy.after', () => {
-		console.log('[pagefind] Creating search index.');
-		execSync(`npx pagefind --source _site --glob \"[0-9]*/**/*.html\"`, { encoding: 'utf-8' });
-  });
+// 	eleventyConfig.on('eleventy.after', () => {
+// 		console.log('[pagefind] Creating search index.');
+// 		execSync(`npx pagefind --source _site --glob \"[0-9]*/**/*.html\"`, { encoding: 'utf-8' });
+  // });
 };
