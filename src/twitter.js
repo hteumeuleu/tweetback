@@ -150,11 +150,20 @@ class Twitter {
 		}
 	}
 
-	async getImage(remoteImageUrl, alt) {
+	async getImage(remoteImageUrl, alt, id) {
 		// TODO the await use here on eleventyImg could be improved
-		let stats = await eleventyImg(remoteImageUrl, ELEVENTY_IMG_OPTIONS);
+		const root = `https://pbs.twimg.com/media/`;
+		const newRoot = `https://tweets.hteumeuleu.fr/img/`;
+		const imgURL = remoteImageUrl.replace(root, newRoot+id+`-`);
+		// console.log("[debug]", remoteImageUrl, id, imgURL);
+		let stats = await eleventyImg(imgURL, ELEVENTY_IMG_OPTIONS);
 		let imgRef = stats.jpeg[0];
-		return `<a href="${imgRef.url}"><img src="${imgRef.url}" width="${imgRef.width}" height="${imgRef.height}" alt="${escapeAttribute(alt) || "oh my god twitter doesn’t include alt text from images in their API"}" class="tweet-media u-featured" onerror="fallbackMedia(this)" loading="lazy" decoding="async"></a>`;
+		return `<a href="${imgURL}"><img src="${imgURL}" width="${imgRef.width}" height="${imgRef.height}" alt="${escapeAttribute(alt) || ""}" class="tweet-media u-featured" onerror="fallbackMedia(this)" loading="lazy" decoding="async"></a>`;
+
+		// // TODO the await use here on eleventyImg could be improved
+		// let stats = await eleventyImg(remoteImageUrl, ELEVENTY_IMG_OPTIONS);
+		// let imgRef = stats.jpeg[0];
+		// return `<a href="${imgRef.url}"><img src="${imgRef.url}" width="${imgRef.width}" height="${imgRef.height}" alt="${escapeAttribute(alt) || "oh my god twitter doesn’t include alt text from images in their API"}" class="tweet-media u-featured" onerror="fallbackMedia(this)" loading="lazy" decoding="async"></a>`;
 	}
 
 	async saveVideo(remoteVideoUrl, localVideoPath) {
@@ -204,7 +213,7 @@ class Twitter {
 					textReplacements.set(media.url, { html: "" });
 
 					try {
-						let html = await this.getImage(media.media_url_https, media.alt_text || "");
+						let html = await this.getImage(media.media_url_https, media.alt_text || "", tweet.id);
 						medias.push(html);
 					} catch(e) {
 						console.log("Image request error", e.message);
@@ -227,16 +236,28 @@ class Twitter {
 						let remoteVideoUrl = videoResults[0].url;
 
 						try {
+							const newRoot = `https://tweets.hteumeuleu.fr/video/`;
 							let videoUrl = remoteVideoUrl;
-							let posterStats = await eleventyImg(media.media_url_https, ELEVENTY_IMG_OPTIONS);
-							if(!this.isRetweet(tweet)) {
-								videoUrl = `/video/${tweet.id}.mp4`;
-
-								await this.saveVideo(remoteVideoUrl, `.${videoUrl}`)
+							let root = `https://video.twimg.com/tweet_video/`;
+							if(videoUrl.includes(root)) {
+								videoUrl = videoUrl.replace(root, newRoot+tweet.id+`-`);
 							}
+							root = `https://video.twimg.com/ext_tw_video/`;
+							if(videoUrl.includes(root)) {
+								const mediaId = videoUrl.split('/').pop().split('?')[0];
+								videoUrl = newRoot+tweet.id+`-`+mediaId;
+								console.log('[video]', videoUrl);
+							}
+							// console.log("[debug]", remoteVideoUrl, tweet.id, media.media_url_https);
+							// let posterStats = await eleventyImg(media.media_url_https, ELEVENTY_IMG_OPTIONS);
+							// if(!this.isRetweet(tweet)) {
+							// 	videoUrl = `/video/${tweet.id}.mp4`;
 
-							let imgRef = posterStats.jpeg[0];
-							medias.push(`<video muted controls ${media.type === "animated_gif" ? "loop" : ""} src="${videoUrl}" poster="${imgRef.url}" class="tweet-media u-video"></video>`);
+							// 	await this.saveVideo(remoteVideoUrl, `.${videoUrl}`)
+							// }
+
+							// let imgRef = posterStats.jpeg[0];
+							medias.push(`<video muted controls ${media.type === "animated_gif" ? "loop" : ""} src="${videoUrl}" class="tweet-media u-video"></video>`);
 						} catch(e) {
 							console.log("Video request error", e.message);
 							medias.push(`<a href="${remoteVideoUrl}">${remoteVideoUrl}</a>`);
